@@ -24,35 +24,35 @@ Os testes são executados em três cenários de rede simulados com `tc/netem` em
 
 ```
 redes2/
-├── Dockerfile                  # Imagem Ubuntu 22.04 com Python, tc e tcpdump
-├── docker-compose.yml          # Cliente (172.20.0.20) e Servidor (172.20.0.10)
-├── config.py                   # Configurações globais e hash X-Custom-Auth
-├── protocolo_rudp.py           # Definição dos pacotes R-UDP (cabeçalho 78 bytes)
+├── Dockerfile               
+├── docker-compose.yml         
+├── config.py                   
+├── protocolo_rudp.py           
 │
 ├── cliente/
-│   ├── cliente_tcp.py          # Cliente TCP com logging de throughput
-│   └── cliente_rudp.py         # Cliente R-UDP Stop-and-Wait
+│   ├── cliente_tcp.py         
+│   └── cliente_rudp.py    
 │
 ├── servidor/
-│   ├── servidor_tcp.py         # Servidor TCP com validação X-Custom-Auth
-│   └── servidor_rudp.py        # Servidor R-UDP com ACK/NACK e checksum CRC32
+│   ├── servidor_tcp.py      
+│   └── servidor_rudp.py  
 │
 ├── scripts/
-│   ├── setup_tc.sh             # Aplica cenários de rede (A, B ou C)
-│   ├── run_testes_tcp.py       # Executa 15 transferências TCP por cenário
-│   ├── run_testes_rudp.py      # Executa 15 transferências R-UDP por cenário
-│   ├── run_completo.py         # Orquestra testes + captura tcpdump
-│   └── pcap_para_csv.py        # Converte .pcap em CSV para análise
+│   ├── setup_tc.sh     
+│   ├── run_testes_tcp.py      
+│   ├── run_testes_rudp.py   
+│   ├── run_completo.py      
+│   └── pcap_para_csv.py      
 │
 ├── analise/
-│   └── gerar_graficos.py       # Gera 5 gráficos comparativos (Pandas/Matplotlib)
+│   └── gerar_graficos.py     
 │
 ├── logs/
-│   ├── resultados_tcp.csv      # Métricas das 45 execuções TCP
-│   ├── resultados_rudp_limpo.csv # Métricas das 45 execuções R-UDP
-│   └── graficos/               # 5 gráficos PNG gerados
+│   ├── resultados_tcp.csv    
+│   ├── resultados_rudp_limpo.csv 
+│   └── graficos/         
 │
-└── wireshark - prints/         # Capturas de tela do Wireshark por cenário
+└── wireshark - prints/       
 ```
 
 ---
