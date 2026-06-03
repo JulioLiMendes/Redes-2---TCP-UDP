@@ -1,98 +1,181 @@
-# Redes de Computadores II — TCP vs R-UDP
-**Aluno:** JULIO CESAR DE LIMA MENDES  
+# Análise de Desempenho e Confiabilidade em Camadas de Transporte: TCP vs R-UDP
+
+**Disciplina:** Redes de Computadores II  
+**Instituição:** Universidade Federal do Piauí — Campus Senador Helvídio Nunes de Barros  
+**Curso:** Bacharelado em Sistemas de Informação  
+**Aluno:** Julio Cesar de Lima Mendes  
 **Matrícula:** 20249006910  
 **X-Custom-Auth (SHA-256):** `2f93fca4ad0be3570264caaf2010c07833a9889bd61b857b9681fd465d2fcf15`
 
 ---
 
-## Estrutura do Projeto
+## Sobre o Projeto
+
+Este projeto implementa e compara dois sistemas de transferência de arquivos:
+
+- **TCP** — Transferência via sockets TCP nativos do Python
+- **R-UDP** — Transferência via UDP com camada de confiabilidade implementada manualmente (Stop-and-Wait)
+
+Os testes são executados em três cenários de rede simulados com `tc/netem` em containers Docker, com captura de tráfego via `tcpdump` e análise estatística com Pandas e Matplotlib.
+
+---
+
+## Estrutura do Repositório
 
 ```
 redes2/
-├── Dockerfile
-├── docker-compose.yml
-├── config.py
-├── scripts/
-│   └── setup_tc.sh
-├── servidor/
-│   ├── servidor_tcp.py     (Etapa 2)
-│   └── servidor_rudp.py    (Etapa 3)
+├── Dockerfile                  # Imagem Ubuntu 22.04 com Python, tc e tcpdump
+├── docker-compose.yml          # Cliente (172.20.0.20) e Servidor (172.20.0.10)
+├── config.py                   # Configurações globais e hash X-Custom-Auth
+├── protocolo_rudp.py           # Definição dos pacotes R-UDP (cabeçalho 78 bytes)
+│
 ├── cliente/
-│   ├── cliente_tcp.py      (Etapa 2)
-│   └── cliente_rudp.py     (Etapa 3)
-├── logs/                   (gerado automaticamente)
-└── analise/
-    └── analise.py          (Etapa 5)
+│   ├── cliente_tcp.py          # Cliente TCP com logging de throughput
+│   └── cliente_rudp.py         # Cliente R-UDP Stop-and-Wait
+│
+├── servidor/
+│   ├── servidor_tcp.py         # Servidor TCP com validação X-Custom-Auth
+│   └── servidor_rudp.py        # Servidor R-UDP com ACK/NACK e checksum CRC32
+│
+├── scripts/
+│   ├── setup_tc.sh             # Aplica cenários de rede (A, B ou C)
+│   ├── run_testes_tcp.py       # Executa 15 transferências TCP por cenário
+│   ├── run_testes_rudp.py      # Executa 15 transferências R-UDP por cenário
+│   ├── run_completo.py         # Orquestra testes + captura tcpdump
+│   └── pcap_para_csv.py        # Converte .pcap em CSV para análise
+│
+├── analise/
+│   └── gerar_graficos.py       # Gera 5 gráficos comparativos (Pandas/Matplotlib)
+│
+├── logs/
+│   ├── resultados_tcp.csv      # Métricas das 45 execuções TCP
+│   ├── resultados_rudp_limpo.csv # Métricas das 45 execuções R-UDP
+│   └── graficos/               # 5 gráficos PNG gerados
+│
+└── wireshark - prints/         # Capturas de tela do Wireshark por cenário
 ```
 
 ---
 
-## Pré-requisitos (Windows)
+## Protocolo R-UDP
 
-1. Instalar o **Docker Desktop**: https://www.docker.com/products/docker-desktop/
-2. Habilitar **WSL 2** quando solicitado pelo Docker Desktop
-3. Instalar o **Git**: https://git-scm.com/
+O cabeçalho personalizado possui **78 bytes fixos**:
 
----
+| Campo | Tamanho | Descrição |
+|---|---|---|
+| Tipo | 1 byte | DATA / ACK / NACK / SYN / FIN |
+| Seq Num | 4 bytes | Número de sequência |
+| Checksum | 4 bytes | CRC32 do payload |
+| Payload Len | 4 bytes | Tamanho do payload |
+| Auth Len | 1 byte | Tamanho do campo de autenticação |
+| X-Custom-Auth | 64 bytes | SHA-256 (matrícula + nome) |
 
-## Como usar (Etapa 1)
-
-### 1. Subir os containers
-Abra o **PowerShell** ou **Terminal** na pasta do projeto:
-
-```bash
-docker-compose up -d --build
+**Fluxo Stop-and-Wait:**
 ```
-
-### 2. Verificar se os containers estão rodando
-```bash
-docker ps
-```
-Você deve ver `redes2_servidor` e `redes2_cliente` com status `Up`.
-
-### 3. Testar conectividade entre os containers
-```bash
-# Entrar no container cliente
-docker exec -it redes2_cliente bash
-
-# Dentro do container, pingar o servidor
-ping 172.20.0.10
-```
-
-### 4. Aplicar um cenário de rede (dentro do container)
-```bash
-# Entrar no container cliente
-docker exec -it redes2_cliente bash
-
-# Aplicar Cenário A (rede ideal)
-bash /app/scripts/setup_tc.sh A
-
-# Aplicar Cenário B (rede degradada)
-bash /app/scripts/setup_tc.sh B
-
-# Aplicar Cenário C (alta perda)
-bash /app/scripts/setup_tc.sh C
-
-# Remover regras
-bash /app/scripts/setup_tc.sh reset
-```
-
-### 5. Verificar o delay aplicado
-```bash
-ping -c 5 172.20.0.10
-```
-
-### 6. Derrubar os containers
-```bash
-docker-compose down
+CLIENTE                    SERVIDOR
+   |--- SYN (metadados) --->|
+   |<-- SYN-ACK ------------|
+   |--- DATA seq=1 -------->|
+   |<-- ACK seq=1 ----------|
+   |--- DATA seq=2 -------->|   ← aguarda ACK antes do próximo
+   |<-- ACK seq=2 ----------|
+   |--- FIN seq=N -------->|
+   |<-- ACK seq=N ----------|
 ```
 
 ---
 
 ## Cenários de Rede
 
-| Cenário | Perda de Pacotes | Delay  | Descrição        |
-|---------|-----------------|--------|------------------|
-| A       | 0%              | 10ms   | Rede ideal       |
-| B       | 5%              | 50ms   | Rede degradada   |
-| C       | 10%             | 100ms  | Alta perda       |
+| Cenário | Perda | Delay | Descrição |
+|---|---|---|---|
+| A | 0% | 10ms | Rede ideal |
+| B | 5% | 50ms | Rede degradada |
+| C | 10% | 100ms | Alta perda e latência |
+
+---
+
+## Resultados
+
+| Cenário | TCP (Mbps) | R-UDP (Mbps) | Fator |
+|---|---|---|---|
+| A | 81,4773 | 1,3021 | ~62x |
+| B | 1,3616 | 0,0679 | ~20x |
+| C | 0,4007 | 0,0025 | ~160x |
+
+---
+
+## Pré-requisitos
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) com WSL 2 habilitado
+- Windows 10/11
+
+---
+
+## Como Executar
+
+### 1. Subir os containers
+
+```powershell
+docker-compose up -d --build
+```
+
+### 2. Iniciar os servidores (dois terminais separados)
+
+```powershell
+# Terminal 1 — Servidor TCP
+docker exec -it redes2_servidor bash
+python3 /app/servidor/servidor_tcp.py
+```
+
+```powershell
+# Terminal 2 — Servidor R-UDP
+docker exec -it redes2_servidor bash
+python3 /app/servidor/servidor_rudp.py
+```
+
+### 3. Executar os testes completos com captura
+
+```powershell
+# Terminal 3 — Cliente
+docker exec -it redes2_cliente bash
+python3 /app/scripts/run_completo.py todos
+```
+
+Isso executa automaticamente 15 transferências por protocolo por cenário (90 no total), aplicando os cenários A, B e C com `tc/netem` e capturando o tráfego com `tcpdump`.
+
+### 4. Gerar os gráficos
+
+```powershell
+docker exec -it redes2_cliente bash
+python3 /app/analise/gerar_graficos.py
+```
+
+### 5. Copiar resultados para o Windows
+
+```powershell
+docker cp redes2_cliente:/app/logs "C:\caminho\destino\logs"
+```
+
+---
+
+## Aplicar Cenário Manualmente
+
+```bash
+# Dentro do container cliente
+bash /app/scripts/setup_tc.sh A      # Rede ideal
+bash /app/scripts/setup_tc.sh B      # Rede degradada
+bash /app/scripts/setup_tc.sh C      # Alta perda
+bash /app/scripts/setup_tc.sh reset  # Remove regras
+```
+
+---
+
+## Referências
+
+- KUROSE, J. F.; ROSS, K. W. *Redes de Computadores e a Internet*. 8. ed. Pearson, 2021.
+- TANENBAUM, A. S.; WETHERALL, D. *Redes de Computadores*. 5. ed. Pearson, 2011.
+- POSTEL, J. *Transmission Control Protocol*. RFC 793, IETF, 1981.
+- POSTEL, J. *User Datagram Protocol*. RFC 768, IETF, 1980.
+- Docker Documentation. https://docs.docker.com
+- tc-netem: Network Emulator. https://man7.org/linux/man-pages/man8/tc-netem.8.html
