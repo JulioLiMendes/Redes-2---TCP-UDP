@@ -1,0 +1,45 @@
+version: "3.9"
+
+networks:
+  # Rede isolada entre os dois containers
+  rede_teste:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+services:
+
+  servidor:
+    build: .
+    container_name: redes2_servidor
+    hostname: servidor
+    networks:
+      rede_teste:
+        ipv4_address: 172.20.0.10
+    # Permite usar o comando tc (requer privilégios de rede)
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - ./logs:/app/logs
+      - ./servidor:/app/servidor
+      - ./scripts:/app/scripts
+    # O servidor fica aguardando conexões (modo TCP ou R-UDP)
+    command: tail -f /dev/null
+
+  cliente:
+    build: .
+    container_name: redes2_cliente
+    hostname: cliente
+    networks:
+      rede_teste:
+        ipv4_address: 172.20.0.20
+    cap_add:
+      - NET_ADMIN
+    depends_on:
+      - servidor
+    volumes:
+      - ./logs:/app/logs
+      - ./cliente:/app/cliente
+      - ./scripts:/app/scripts
+    command: tail -f /dev/null
