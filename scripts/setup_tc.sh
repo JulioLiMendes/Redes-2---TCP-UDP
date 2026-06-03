@@ -1,10 +1,3 @@
-#!/bin/bash
-# =============================================================
-# setup_tc.sh — Simulação de condições adversas de rede
-# Autor: JULIO CESAR DE LIMA MENDES | Matrícula: 20249006910
-# Uso: ./setup_tc.sh [A|B|C|reset]
-# =============================================================
-
 INTERFACE="eth0"
 
 limpar_regras() {
@@ -24,10 +17,8 @@ aplicar_cenario() {
     echo " Latência (delay) : ${DELAY}ms"
     echo "=========================================="
 
-    # Remove regras antigas antes de aplicar novas
     limpar_regras
 
-    # Aplica nova disciplina de fila com netem
     tc qdisc add dev $INTERFACE root netem \
         delay ${DELAY}ms \
         loss ${PERDA}%
@@ -38,20 +29,16 @@ aplicar_cenario() {
     tc qdisc show dev $INTERFACE
 }
 
-# ---- Leitura do argumento ----
-CENARIO=${1^^}  # Converte para maiúsculo
+CENARIO=${1^^}
 
 case $CENARIO in
     A)
-        # Cenário A: Rede ideal
         aplicar_cenario "A" 0 10
         ;;
     B)
-        # Cenário B: Rede degradada
         aplicar_cenario "B" 5 50
         ;;
     C)
-        # Cenário C: Rede com alta perda
         aplicar_cenario "C" 10 100
         ;;
     RESET)

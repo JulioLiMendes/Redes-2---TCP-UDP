@@ -163,10 +163,10 @@ docker cp redes2_cliente:/app/logs "C:\caminho\destino\logs"
 
 ```bash
 # Dentro do container cliente
-bash /app/scripts/setup_tc.sh A      # Rede ideal
-bash /app/scripts/setup_tc.sh B      # Rede degradada
-bash /app/scripts/setup_tc.sh C      # Alta perda
-bash /app/scripts/setup_tc.sh reset  # Remove regras
+bash /app/scripts/setup_tc.sh A      
+bash /app/scripts/setup_tc.sh B   
+bash /app/scripts/setup_tc.sh C 
+bash /app/scripts/setup_tc.sh reset 
 ```
 
 ---

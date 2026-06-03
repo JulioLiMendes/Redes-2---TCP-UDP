@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-# =============================================================
-# analise.py — Análise estatística TCP vs R-UDP
-# Autor: JULIO CESAR DE LIMA MENDES | Matrícula: 20249006910
-# =============================================================
-
 import os
 import pandas as pd
 import matplotlib
@@ -27,10 +21,6 @@ DESC_CEN   = {
 COR_TCP  = "#2196F3"   # azul
 COR_RUDP = "#F44336"   # vermelho
 
-# ─────────────────────────────────────────────
-# 1. Carrega e limpa os dados
-# ─────────────────────────────────────────────
-
 def carregar_dados():
     tcp_path  = os.path.join(LOG_DIR, "resultados_tcp.csv")
     rudp_path = os.path.join(LOG_DIR, "resultados_rudp.csv")
@@ -38,7 +28,6 @@ def carregar_dados():
     tcp  = pd.read_csv(tcp_path)
     rudp = pd.read_csv(rudp_path)
 
-    # Mantém só execuções bem-sucedidas e com throughput > 0
     tcp  = tcp[(tcp["throughput_mbps"].astype(float) > 0)]
     rudp = rudp[(rudp["throughput_mbps"].astype(float) > 0)]
 
@@ -47,7 +36,6 @@ def carregar_dados():
     rudp["throughput_mbps"] = rudp["throughput_mbps"].astype(float)
     rudp["duracao_s"]       = rudp["duracao_s"].astype(float)
 
-    # Limita a 15 execuções por cenário para equidade
     tcp  = tcp.groupby("cenario").head(15).reset_index(drop=True)
     rudp = rudp.groupby("cenario").head(15).reset_index(drop=True)
 
@@ -59,10 +47,6 @@ def estatisticas(df, coluna="throughput_mbps"):
         media="mean", desvio="std", minimo="min", maximo="max", n="count"
     ).reindex(CENARIOS)
 
-
-# ─────────────────────────────────────────────
-# 2. Tabela de estatísticas no terminal
-# ─────────────────────────────────────────────
 
 def imprimir_tabela(tcp, rudp):
     print("\n" + "="*70)
@@ -97,10 +81,6 @@ def imprimir_tabela(tcp, rudp):
         print("-"*70)
 
 
-# ─────────────────────────────────────────────
-# 3. Gráfico 1 — Throughput médio com barra de erro
-# ─────────────────────────────────────────────
-
 def grafico_throughput_medio(tcp, rudp):
     est_tcp  = estatisticas(tcp)
     est_rudp = estatisticas(rudp)
@@ -120,7 +100,6 @@ def grafico_throughput_medio(tcp, rudp):
                          color=COR_RUDP, alpha=0.85, label="R-UDP",
                          error_kw={"elinewidth": 2, "ecolor": "darkred"})
 
-    # Anotações com valor nas barras
     for bar in barras_tcp:
         h = bar.get_height()
         ax.text(bar.get_x() + bar.get_width()/2, h + 0.01,
@@ -146,11 +125,6 @@ def grafico_throughput_medio(tcp, rudp):
     plt.savefig(caminho, dpi=150)
     plt.close()
     print(f"[OK] Salvo: {caminho}")
-
-
-# ─────────────────────────────────────────────
-# 4. Gráfico 2 — Boxplot throughput
-# ─────────────────────────────────────────────
 
 def grafico_boxplot_throughput(tcp, rudp):
     fig, axes = plt.subplots(1, 3, figsize=(14, 6), sharey=False)
@@ -185,11 +159,6 @@ def grafico_boxplot_throughput(tcp, rudp):
     plt.savefig(caminho, dpi=150)
     plt.close()
     print(f"[OK] Salvo: {caminho}")
-
-
-# ─────────────────────────────────────────────
-# 5. Gráfico 3 — Duração média por cenário
-# ─────────────────────────────────────────────
 
 def grafico_duracao_media(tcp, rudp):
     est_tcp  = estatisticas(tcp,  "duracao_s")
@@ -226,11 +195,6 @@ def grafico_duracao_media(tcp, rudp):
     plt.close()
     print(f"[OK] Salvo: {caminho}")
 
-
-# ─────────────────────────────────────────────
-# 6. Gráfico 4 — Throughput por execução (linha)
-# ─────────────────────────────────────────────
-
 def grafico_throughput_por_execucao(tcp, rudp):
     fig, axes = plt.subplots(1, 3, figsize=(15, 5), sharey=False)
     fig.suptitle("Throughput por Execução: TCP vs R-UDP",
@@ -265,11 +229,6 @@ def grafico_throughput_por_execucao(tcp, rudp):
     plt.close()
     print(f"[OK] Salvo: {caminho}")
 
-
-# ─────────────────────────────────────────────
-# 7. Gráfico 5 — Degradação por cenário (linha)
-# ─────────────────────────────────────────────
-
 def grafico_degradacao(tcp, rudp):
     medias_tcp  = [tcp[tcp["cenario"]  == c]["throughput_mbps"].mean() for c in CENARIOS]
     medias_rudp = [rudp[rudp["cenario"] == c]["throughput_mbps"].mean() for c in CENARIOS]
@@ -302,11 +261,6 @@ def grafico_degradacao(tcp, rudp):
     plt.savefig(caminho, dpi=150)
     plt.close()
     print(f"[OK] Salvo: {caminho}")
-
-
-# ─────────────────────────────────────────────
-# 8. Execução principal
-# ─────────────────────────────────────────────
 
 def main():
     print("="*60)

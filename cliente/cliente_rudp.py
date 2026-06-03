@@ -1,9 +1,3 @@
-# =============================================================
-# cliente_rudp.py — Cliente R-UDP (Stop-and-Wait)
-# Autor: JULIO CESAR DE LIMA MENDES | Matrícula: 20249006910
-# Uso: python3 cliente_rudp.py <caminho_arquivo> <cenario> [execucao]
-# =============================================================
-
 import socket
 import os
 import sys
@@ -143,7 +137,6 @@ def enviar_arquivo(caminho_arquivo: str, cenario: str, execucao: int = 1):
             salvar_csv(cenario, execucao, 0, 0, 0, 0, False)
             return
 
-        # ── 2) Envio Stop-and-Wait ────────────────────────────
         seq_num        = 1
         bytes_enviados = 0
         inicio         = time.perf_counter()
@@ -170,7 +163,6 @@ def enviar_arquivo(caminho_arquivo: str, cenario: str, execucao: int = 1):
 
         fim = time.perf_counter()
 
-        # ── 3) FIN ────────────────────────────────────────────
         log("Enviando FIN...")
         fin          = montar_fin(seq_num, X_CUSTOM_AUTH)
         fin_ok, rtr  = enviar_com_retry(sock, fin, TIPO_ACK, seq_num, addr_servidor)

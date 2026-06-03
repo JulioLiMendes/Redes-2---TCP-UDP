@@ -1,42 +1,6 @@
-# =============================================================
-# rudp_protocolo.py — Definição do pacote R-UDP
-# Autor: JULIO CESAR DE LIMA MENDES | Matrícula: 20249006910
-# =============================================================
-#
-# Estrutura do pacote R-UDP (cabeçalho fixo de 32 bytes):
-#
-#  0        1        2        3        4
-#  +--------+--------+--------+--------+
-#  |         NUMERO DE SEQUENCIA        |  4 bytes (uint32)
-#  +--------+--------+--------+--------+
-#  |              CHECKSUM              |  4 bytes (uint32)
-#  +--------+--------+--------+--------+
-#  |    TIPO   (1B)  | FLAGS  (1B)      |  2 bytes
-#  +--------+--------+--------+--------+
-#  |         TAMANHO DO PAYLOAD         |  4 bytes (uint32)
-#  +--------+--------+--------+--------+
-#  |      X-Custom-Auth (64 bytes)      |  64 bytes (hex string)
-#  +--------+--------+--------+--------+
-#  |            PAYLOAD                 |  variável
-#  +--------+--------+--------+--------+
-#
-# TIPOS de pacote:
-#   0x01 = DATA   — bloco de dados do arquivo
-#   0x02 = ACK    — confirmação de recebimento
-#   0x03 = SYN    — início de sessão (handshake)
-#   0x04 = FIN    — fim de transferência
-#   0x05 = SYNACK — resposta ao SYN
-#   0x06 = FINACK — resposta ao FIN
-#
-# FLAGS:
-#   0x00 = normal
-#   0x01 = último pacote (EOF)
-# =============================================================
-
 import struct
 import zlib
 
-# ---- Constantes de tipo ----
 TIPO_DATA   = 0x01
 TIPO_ACK    = 0x02
 TIPO_SYN    = 0x03
@@ -47,8 +11,7 @@ TIPO_FINACK = 0x06
 FLAG_NORMAL = 0x00
 FLAG_EOF    = 0x01
 
-# Tamanho fixo do cabeçalho
-TAMANHO_CABECALHO = 4 + 4 + 1 + 1 + 4 + 64  # = 78 bytes
+TAMANHO_CABECALHO = 4 + 4 + 1 + 1 + 4 + 64 
 
 
 def calcular_checksum(payload: bytes) -> int:
@@ -64,8 +27,7 @@ def montar_pacote(seq: int, tipo: int, payload: bytes,
     """
     checksum = calcular_checksum(payload)
 
-    # Cabeçalho: seq(4) + checksum(4) + tipo(1) + flag(1) + tamanho(4) + auth(64)
-    auth_bytes = auth.encode().ljust(64)[:64]   # garante exatamente 64 bytes
+    auth_bytes = auth.encode().ljust(64)[:64]  
     cabecalho = struct.pack(
         "!IIBbI64s",
         seq,
@@ -92,7 +54,6 @@ def desmontar_pacote(dados: bytes):
 
     payload = dados[TAMANHO_CABECALHO: TAMANHO_CABECALHO + tamanho_payload]
 
-    # Valida checksum
     checksum_calculado = calcular_checksum(payload)
     integro = (checksum_calculado == checksum)
 

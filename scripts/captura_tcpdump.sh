@@ -1,12 +1,3 @@
-#!/bin/bash
-# =============================================================
-# captura_tcpdump.sh — Captura tráfego durante os testes
-# Autor: JULIO CESAR DE LIMA MENDES | Matrícula: 20249006910
-# Uso: bash captura_tcpdump.sh [tcp|rudp|todos] [cenario]
-# Ex:  bash captura_tcpdump.sh tcp A
-#      bash captura_tcpdump.sh todos
-# =============================================================
-
 INTERFACE="eth0"
 LOG_DIR="/app/logs"
 PCAP_DIR="$LOG_DIR/pcap"
@@ -15,8 +6,8 @@ mkdir -p "$PCAP_DIR"
 PORTA_TCP=5000
 PORTA_UDP=5001
 
-PROTOCOLO=${1:-"todos"}   # tcp | rudp | todos
-CENARIO=${2:-"X"}         # A | B | C | X (sem cenário definido)
+PROTOCOLO=${1:-"todos"}
+CENARIO=${2:-"X"}
 
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 

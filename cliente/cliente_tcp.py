@@ -1,9 +1,3 @@
-# =============================================================
-# cliente_tcp.py — Cliente de transferência de arquivos TCP
-# Autor: JULIO CESAR DE LIMA MENDES | Matrícula: 20249006910
-# Uso: python3 cliente_tcp.py <caminho_arquivo> <cenario> [execucao]
-# =============================================================
-
 import socket
 import os
 import sys
@@ -74,8 +68,6 @@ def enviar_arquivo(caminho_arquivo: str, cenario: str, execucao: int = 1):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((HOST_SERVIDOR, PORTA_TCP))
             log("Conexão estabelecida.")
-
-            # 1) Monta e envia o header JSON (padded para 512 bytes)
             header = {
                 "X-Custom-Auth": X_CUSTOM_AUTH,
                 "filename"      : nome_arquivo,
@@ -87,7 +79,6 @@ def enviar_arquivo(caminho_arquivo: str, cenario: str, execucao: int = 1):
             raw_header = json.dumps(header).ljust(512).encode()
             s.sendall(raw_header)
 
-            # 2) Aguarda confirmação do servidor
             resposta = s.recv(16).decode().strip()
             if resposta != "READY":
                 log(f"Servidor recusou conexão: {resposta}")
@@ -95,7 +86,6 @@ def enviar_arquivo(caminho_arquivo: str, cenario: str, execucao: int = 1):
 
             log("Servidor pronto. Iniciando envio...")
 
-            # 3) Envia o arquivo em chunks e mede o tempo
             bytes_enviados = 0
             inicio = time.perf_counter()
 
@@ -109,13 +99,11 @@ def enviar_arquivo(caminho_arquivo: str, cenario: str, execucao: int = 1):
 
             fim = time.perf_counter()
 
-            # 4) Aguarda confirmação final
             confirmacao = s.recv(16).decode().strip()
             sucesso = (confirmacao == "OK")
 
-            # 5) Calcula métricas
             duracao    = fim - inicio
-            throughput = (bytes_enviados * 8) / (duracao * 1_000_000)  # Mbps
+            throughput = (bytes_enviados * 8) / (duracao * 1_000_000) 
 
             log(f"Transferência {'CONCLUÍDA' if sucesso else 'COM ERRO'}!")
             log(f"  Bytes enviados  : {bytes_enviados}")
@@ -132,8 +120,6 @@ def enviar_arquivo(caminho_arquivo: str, cenario: str, execucao: int = 1):
 
     return duracao, throughput
 
-
-# ─── Execução direta ────────────────────────────────────────
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Uso: python3 cliente_tcp.py <arquivo> <cenario> [execucao]")

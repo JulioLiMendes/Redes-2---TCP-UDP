@@ -1,8 +1,3 @@
-#!/usr/bin/env python3
-# =============================================================
-# run_testes_rudp.py — Executa N transferências R-UDP por cenário
-# Autor: JULIO CESAR DE LIMA MENDES | Matrícula: 20249006910
-# =============================================================
 
 import os
 import sys

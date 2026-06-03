@@ -1,18 +1,3 @@
-#!/usr/bin/env python3
-# =============================================================
-# run_completo.py — Orquestra testes + captura tcpdump juntos
-# Autor: JULIO CESAR DE LIMA MENDES | Matrícula: 20249006910
-#
-# Este script roda no container CLIENTE e:
-#   1. Aplica o cenário de rede (tc)
-#   2. Inicia o tcpdump em background no próprio cliente
-#   3. Executa as transferências (TCP ou R-UDP)
-#   4. Encerra o tcpdump e salva o .pcap
-#   5. Repete para cada cenário
-#
-# Uso: python3 /app/scripts/run_completo.py [tcp|rudp|todos]
-# =============================================================
-
 import os
 import sys
 import time
@@ -76,7 +61,7 @@ def iniciar_captura(protocolo, cenario):
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL
     )
-    time.sleep(0.5)  # Dá tempo ao tcpdump inicializar
+    time.sleep(0.5) 
     return proc, arquivo
 
 
@@ -116,7 +101,7 @@ def executar_rudp(cenario):
         subprocess.run(
             ["python3", CLIENTE_RUDP, ARQUIVO_TESTE, cenario, str(i)]
         )
-        time.sleep(PAUSA_ENTRE * 2)  # R-UDP precisa de mais intervalo
+        time.sleep(PAUSA_ENTRE * 2)
 
     encerrar_captura(proc, arquivo)
 
@@ -147,7 +132,6 @@ def main():
         if modo in ["rudp", "todos"]:
             executar_rudp(cenario)
 
-    # Remove regras tc ao final
     subprocess.run(["bash", SETUP_TC, "reset"], capture_output=True)
 
     log("Convertendo capturas para CSV...")

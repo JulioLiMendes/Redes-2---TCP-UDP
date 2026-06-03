@@ -1,8 +1,3 @@
-# =============================================================
-# servidor_rudp.py — Servidor R-UDP (Stop-and-Wait)
-# Autor: JULIO CESAR DE LIMA MENDES | Matrícula: 20249006910
-# =============================================================
-
 import socket
 import os
 import sys
@@ -98,7 +93,6 @@ def receber_arquivo(sock, addr_cliente, header_meta):
                 f"{'OK' if pkt['integro'] else 'CORROMPIDO'} | "
                 f"{pkt['payload_len']} bytes")
 
-            # FIN — fim da transferência
             if tipo == TIPO_FIN:
                 ack = montar_ack(seq_num, X_CUSTOM_AUTH)
                 sock.sendto(ack, addr)
@@ -106,12 +100,10 @@ def receber_arquivo(sock, addr_cliente, header_meta):
                 sucesso = True
                 break
 
-            # DATA
             if tipo == TIPO_DATA:
                 if not validar_auth(pkt["auth"]):
                     continue
 
-                # Checksum inválido — envia NACK
                 if not pkt["integro"]:
                     nack = montar_nack(seq_num, X_CUSTOM_AUTH)
                     sock.sendto(nack, addr)
@@ -119,7 +111,6 @@ def receber_arquivo(sock, addr_cliente, header_meta):
                     retransmissoes += 1
                     continue
 
-                # Pacote duplicado — reconfirma ACK
                 if seq_num < seq_esperado:
                     ack = montar_ack(seq_num, X_CUSTOM_AUTH)
                     sock.sendto(ack, addr)
@@ -127,12 +118,10 @@ def receber_arquivo(sock, addr_cliente, header_meta):
                     retransmissoes += 1
                     continue
 
-                # Fora de ordem (não esperado no Stop-and-Wait)
                 if seq_num != seq_esperado:
                     log(f"  ! Fora de ordem: esperado {seq_esperado}, recebido {seq_num}")
                     continue
 
-                # Pacote correto — grava e confirma
                 f_out.write(pkt["payload"])
                 bytes_recebidos += pkt["payload_len"]
                 seq_esperado    += 1

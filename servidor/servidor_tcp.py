@@ -1,8 +1,3 @@
-# =============================================================
-# servidor_tcp.py — Servidor de transferência de arquivos TCP
-# Autor: JULIO CESAR DE LIMA MENDES | Matrícula: 20249006910
-# =============================================================
-
 import socket
 import os
 import sys
@@ -39,7 +34,6 @@ def validar_auth(header: dict) -> bool:
 def receber_arquivo(conn, addr):
     """Recebe um arquivo de um cliente TCP conectado."""
     try:
-        # 1) Recebe o header JSON (tamanho fixo de 512 bytes)
         raw_header = conn.recv(512)
         header = json.loads(raw_header.decode().strip())
 
@@ -53,10 +47,8 @@ def receber_arquivo(conn, addr):
 
         log(f"Conexão de {addr} | Arquivo: {nome_arquivo} | Tamanho: {tamanho_total} bytes | Cenário: {cenario}")
 
-        # Confirma que está pronto para receber
         conn.sendall(b"READY")
 
-        # 2) Recebe os dados do arquivo
         destino = os.path.join(LOG_DIR, f"recebido_tcp_{nome_arquivo}")
         bytes_recebidos = 0
         inicio = time.perf_counter()
@@ -71,7 +63,6 @@ def receber_arquivo(conn, addr):
 
         fim = time.perf_counter()
 
-        # 3) Calcula métricas
         duracao   = fim - inicio
         throughput = (bytes_recebidos * 8) / (duracao * 1_000_000)  # Mbps
 
@@ -80,7 +71,6 @@ def receber_arquivo(conn, addr):
         log(f"  Duração         : {duracao:.4f}s")
         log(f"  Throughput      : {throughput:.4f} Mbps")
 
-        # 4) Envia confirmação final ao cliente
         conn.sendall(b"OK")
 
     except Exception as e:

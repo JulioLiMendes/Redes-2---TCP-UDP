@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-# =============================================================
-# pcap_para_csv.py — Converte capturas .pcap em CSV analisável
-# Autor: JULIO CESAR DE LIMA MENDES | Matrícula: 20249006910
-# Uso: python3 pcap_para_csv.py
-# =============================================================
-
 import os
 import sys
 import subprocess
@@ -43,10 +36,10 @@ def converter_pcap_com_tcpdump(pcap_path: str, csv_path: str):
 
     cmd = [
         "tcpdump", "-r", pcap_path,
-        "-n",          # Não resolve hostnames
-        "-tt",         # Timestamp em Unix epoch
-        "-q",          # Saída resumida
-        "-v"           # Verboso (inclui tamanho)
+        "-n",       
+        "-tt",     
+        "-q",      
+        "-v"    
     ]
 
     resultado = subprocess.run(cmd, capture_output=True, text=True)
@@ -91,7 +84,6 @@ def parsear_linha_tcpdump(linha: str) -> dict:
 
         timestamp = partes[0]
 
-        # Detecta protocolo pela porta
         protocolo = "OUTRO"
         src_raw   = ""
         dst_raw   = ""
@@ -113,13 +105,11 @@ def parsear_linha_tcpdump(linha: str) -> dict:
         dst_ip   = dst_parts[0] if len(dst_parts) == 2 else dst_raw
         dst_port = dst_parts[1] if len(dst_parts) == 2 else "0"
 
-        # Classifica por porta
         if str(PORTA_TCP) in [src_port, dst_port]:
             protocolo = "TCP"
         elif str(PORTA_UDP) in [src_port, dst_port]:
             protocolo = "UDP_RUDP"
 
-        # Extrai tamanho
         tamanho = 0
         for i, p in enumerate(partes):
             if p == "length" and i + 1 < len(partes):
@@ -129,7 +119,6 @@ def parsear_linha_tcpdump(linha: str) -> dict:
                     pass
                 break
 
-        # Extrai flags TCP
         flags = ""
         m = re.search(r"Flags \[([^\]]+)\]", linha)
         if m:

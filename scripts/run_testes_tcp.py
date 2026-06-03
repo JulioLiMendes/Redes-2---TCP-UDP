@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# =============================================================
-# run_testes_tcp.py — Executa N transferências TCP por cenário
-# Autor: JULIO CESAR DE LIMA MENDES | Matrícula: 20249006910
-# Uso (dentro do container cliente):
-#   python3 /app/scripts/run_testes_tcp.py
-# =============================================================
-
 import os
 import sys
 import time
@@ -14,14 +6,13 @@ import subprocess
 sys.path.insert(0, '/app')
 from config import LOG_DIR
 
-# ---- Configurações ----
 ARQUIVO_TESTE   = "/app/logs/arquivo_teste.bin"
-TAMANHO_MB      = 5          # Tamanho do arquivo de teste em MB
-N_EXECUCOES     = 15         # Número de transferências por cenário
+TAMANHO_MB      = 5      
+N_EXECUCOES     = 15     
 CENARIOS        = ["A", "B", "C"]
 SETUP_TC        = "/app/scripts/setup_tc.sh"
 CLIENTE_TCP     = "/app/cliente/cliente_tcp.py"
-PAUSA_ENTRE     = 1.0        # Segundos entre execuções
+PAUSA_ENTRE     = 1.0      
 
 
 def gerar_arquivo_teste():
@@ -49,7 +40,7 @@ def aplicar_cenario(cenario):
     print(resultado.stdout)
     if resultado.returncode != 0:
         print(f"[ERRO tc] {resultado.stderr}")
-    time.sleep(1)  # Aguarda tc estabilizar
+    time.sleep(1) 
 
 
 def executar_transferencias(cenario):
@@ -77,7 +68,6 @@ def main():
         aplicar_cenario(cenario)
         executar_transferencias(cenario)
 
-    # Remove regras de tc ao final
     subprocess.run(["bash", SETUP_TC, "reset"], capture_output=True)
 
     print("\n" + "=" * 60)
